@@ -33,7 +33,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.InspectableModifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
@@ -213,7 +212,7 @@ fun MarketDataRow(marketData: MarketData) {
             }
 
             // 현재가 : 최종 체결 가격
-            val lastPrice = marketData.last
+            val lastPrice = formatPrice(marketData.last.toDouble())
             Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
                 Text(text = lastPrice)
             }
@@ -237,7 +236,7 @@ fun MarketDataRow(marketData: MarketData) {
                 }
 
                 // 변동가격 : 시작 가격 대비 현재가 차이
-                val priceChange = formatPriceChange(openingPrice - currentPrice)
+                val priceChange = formatPrice(openingPrice - currentPrice)
                 Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
                     Text(text = "$priceChange", color = textColor)
                 }
@@ -261,7 +260,7 @@ fun MarketDataRow(marketData: MarketData) {
     }
 }
 
-fun formatPriceChange(value: Double): String {
+fun formatPrice(value: Double): String {
     return when {
         abs(value) >= 100 -> {
             String.format("%,d", value.toInt())
