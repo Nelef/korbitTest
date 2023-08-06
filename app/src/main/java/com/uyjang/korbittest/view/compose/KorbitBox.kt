@@ -41,10 +41,9 @@ fun PreviewKorbitBox() {
 fun KorbitBox(modifier: Modifier = Modifier, content: @Composable (() -> Unit)? = null) {
     Box(
         modifier = Modifier
+            .then(modifier)
             .defaultMinSize(10.dp, 10.dp)
-            .padding(15.dp)
             .border(1.dp, LocalContentColor.current, shape = RoundedCornerShape(5.dp))
-            .then(modifier) // 테두리 검정색으로 지정
     ) {
         content?.invoke()
     }
