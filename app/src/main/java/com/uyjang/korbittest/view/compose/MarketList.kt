@@ -127,7 +127,7 @@ fun PreviewMarketList() {
 
     KorbitTestTheme {
         Column(modifier = Modifier.fillMaxSize()) {
-            MarketTabScreen(marketDataPreprocessedDataList)
+            MarketTabScreen(marketDataPreprocessedDataList) {}
         }
     }
 }
@@ -154,10 +154,13 @@ fun SearchTopBar() {
 }
 
 @Composable
-fun MarketTabScreen(marketDataPreprocessedDataList: List<MarketDataPreprocessedData>) {
+fun MarketTabScreen(
+    marketDataPreprocessedDataList: List<MarketDataPreprocessedData>,
+    onClickSortButton: (sortButtonNum: Int) -> Unit
+) {
     var tabIndex by remember { mutableStateOf(0) }
-
     val tabs = listOf("마켓", "즐겨찾기")
+    val sortButtons by remember { mutableStateOf(List(4) { mutableStateOf(0) }) }
 
     Column {
         TabRow(
@@ -181,7 +184,10 @@ fun MarketTabScreen(marketDataPreprocessedDataList: List<MarketDataPreprocessedD
             tabs.forEachIndexed { index, title ->
                 Tab(text = { Text(title) },
                     selected = tabIndex == index,
-                    onClick = { tabIndex = index }
+                    onClick = {
+                        tabIndex = index
+                        sortButtons.forEach { it.value = 0 }
+                    }
                 )
             }
         }
@@ -198,29 +204,56 @@ fun MarketTabScreen(marketDataPreprocessedDataList: List<MarketDataPreprocessedD
             verticalAlignment = Alignment.CenterVertically
         ) {
             SortButton(
-                onClick = { /*TODO*/ },
+                onClick = {
+                    sortButtons[0].value = (sortButtons[0].value % 2) + 1
+                    sortButtons[1].value = 0
+                    sortButtons[2].value = 0
+                    sortButtons[3].value = 0
+                    onClickSortButton(if (sortButtons[0].value == 1) 11 else 12)
+                },
                 modifier = Modifier.weight(1f),
                 contentAlign = Alignment.CenterStart,
-                text = "가상자산명"
+                text = "가상자산명",
+                currentSortNum = sortButtons[0].value
             )
             Spacer(Modifier.size(25.dp))
             SortButton(
-                onClick = { /*TODO*/ },
-                modifier = Modifier.weight(1f),
+                onClick = {
+                    sortButtons[0].value = 0
+                    sortButtons[1].value = (sortButtons[1].value % 2) + 1
+                    sortButtons[2].value = 0
+                    sortButtons[3].value = 0
+                    onClickSortButton(if (sortButtons[1].value == 1) 21 else 22)
+                }, modifier = Modifier.weight(1f),
                 contentAlign = Alignment.CenterEnd,
-                text = "현재가"
+                text = "현재가",
+                currentSortNum = sortButtons[1].value
             )
             SortButton(
-                onClick = { /*TODO*/ },
+                onClick = {
+                    sortButtons[0].value = 0
+                    sortButtons[1].value = 0
+                    sortButtons[2].value = (sortButtons[2].value % 2) + 1
+                    sortButtons[3].value = 0
+                    onClickSortButton(if (sortButtons[2].value == 1) 31 else 32)
+                },
                 modifier = Modifier.weight(1f),
                 contentAlign = Alignment.CenterEnd,
-                text = "24시간"
+                text = "24시간",
+                currentSortNum = sortButtons[2].value
             )
             SortButton(
-                onClick = { /*TODO*/ },
+                onClick = {
+                    sortButtons[0].value = 0
+                    sortButtons[1].value = 0
+                    sortButtons[2].value = 0
+                    sortButtons[3].value = (sortButtons[3].value % 2) + 1
+                    onClickSortButton(if (sortButtons[3].value == 1) 41 else 42)
+                },
                 modifier = Modifier.weight(1f),
                 contentAlign = Alignment.CenterEnd,
-                text = "거래대금"
+                text = "거래대금",
+                currentSortNum = sortButtons[3].value
             )
         }
         Divider(
@@ -230,8 +263,13 @@ fun MarketTabScreen(marketDataPreprocessedDataList: List<MarketDataPreprocessedD
                 .height(1.dp)
         )
         when (tabIndex) {
-            0 -> MarketList(marketDataPreprocessedDataList)
-            1 -> testList()
+            0 -> {
+                MarketList(marketDataPreprocessedDataList)
+            }
+
+            1 -> {
+                testList()
+            }
         }
     }
 }
@@ -265,7 +303,7 @@ fun SortButton(
     val textStyle = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Normal,
-        fontSize = 10.sp
+        fontSize = 11.sp
     )
 
     Box(
@@ -278,8 +316,8 @@ fun SortButton(
             Spacer(modifier = Modifier.width(3.dp))
             Text(text = text, style = textStyle)
             Column {
-                val size = 17.dp
-                val offset = 6.dp
+                val size = 23.dp
+                val offset = 9.dp
                 Icon(
                     modifier = Modifier
                         .size(size)

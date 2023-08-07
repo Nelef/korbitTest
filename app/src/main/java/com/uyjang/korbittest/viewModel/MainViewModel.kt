@@ -1,11 +1,8 @@
 package com.uyjang.korbittest.viewModel
 
-import android.util.Log
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -1536,9 +1533,11 @@ class MainViewModel : ViewModel() {
             )
         }
 
-        println(marketDataPreprocessedDataList)
+        // 리스트 조회 결과는 거래대금이 높은 순서대로 정렬하여 출력
+        marketDataPreprocessedDataList =
+            marketDataPreprocessedDataList.sortedByDescending { it.originalMarketData.volume.toDouble() }
 
-        Log.d("uyTest", marketDataList.toString())
+//        Log.d("uyTest", marketDataList.toString())
     }
 
     private fun formatPrice(value: Double): String {
@@ -1549,6 +1548,55 @@ class MainViewModel : ViewModel() {
 
             else -> {
                 String.format("%,.2f", value)
+            }
+        }
+    }
+
+    fun sortList(sortButtonNum: Int) {
+        when (sortButtonNum) {
+            // 정렬 버튼 - 가상자산명 내림차순
+            11 -> {
+                marketDataPreprocessedDataList =
+                    marketDataPreprocessedDataList.sortedByDescending { it.originalMarketData.currencyPair }
+            }
+            // 정렬 버튼 - 가상자산명 오름차순
+            12 -> {
+                marketDataPreprocessedDataList =
+                    marketDataPreprocessedDataList.sortedBy { it.originalMarketData.currencyPair }
+            }
+            // 정렬 버튼 - 현재가 내림차순
+            21 -> {
+                marketDataPreprocessedDataList =
+                    marketDataPreprocessedDataList.sortedByDescending { it.originalMarketData.last.toDouble() }
+            }
+            // 정렬 버튼 - 현재가 오름차순
+            22 -> {
+                marketDataPreprocessedDataList =
+                    marketDataPreprocessedDataList.sortedBy { it.originalMarketData.last.toDouble() }
+            }
+            // 정렬 버튼 - 24시간 내림차순
+            31 -> {
+                marketDataPreprocessedDataList =
+                    marketDataPreprocessedDataList.sortedByDescending { it.originalMarketData.changePercent.toDouble() }
+            }
+            // 정렬 버튼 - 24시간 오름차순
+            32 -> {
+                marketDataPreprocessedDataList =
+                    marketDataPreprocessedDataList.sortedBy { it.originalMarketData.changePercent.toDouble() }
+            }
+            // 정렬 버튼 - 거래대금 내림차순
+            41 -> {
+                marketDataPreprocessedDataList =
+                    marketDataPreprocessedDataList.sortedByDescending { it.originalMarketData.volume.toDouble() }
+            }
+            // 정렬 버튼 - 거래대금 오름차순
+            42 -> {
+                marketDataPreprocessedDataList =
+                    marketDataPreprocessedDataList.sortedBy { it.originalMarketData.volume.toDouble() }
+            }
+
+            else -> {
+
             }
         }
     }

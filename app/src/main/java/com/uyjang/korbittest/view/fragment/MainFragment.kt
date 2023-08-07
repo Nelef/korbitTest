@@ -30,7 +30,9 @@ class MainFragment : BaseFragment() {
             ) {
                 Column(modifier = Modifier.fillMaxSize()) {
                     SearchTopBar()
-                    MarketTabScreen(viewModel.marketDataPreprocessedDataList)
+                    MarketTabScreen(viewModel.marketDataPreprocessedDataList) { sortButtonNum ->
+                        viewModel.sortList(sortButtonNum)
+                    }
                 }
             }
         }
@@ -90,7 +92,7 @@ fun PreviewMarketList() {
     KorbitTestTheme {
         Column(modifier = Modifier.fillMaxSize()) {
             SearchTopBar()
-            MarketTabScreen(marketDataPreprocessedDataList)
+            MarketTabScreen(marketDataPreprocessedDataList) {}
         }
     }
 }
