@@ -3,11 +3,7 @@ package com.uyjang.korbittest.base
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.compose.ui.tooling.preview.Preview
 import com.uyjang.korbittest.databinding.ActivityMainBinding
 import com.uyjang.korbittest.view.ui.theme.KorbitTestTheme
 
@@ -32,21 +28,5 @@ class MainActivity : AppCompatActivity() {
         }
 
         setContentView(binding.root)
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    KorbitTestTheme {
-        Greeting("Android")
     }
 }

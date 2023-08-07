@@ -2,6 +2,7 @@ package com.uyjang.korbittest.view.compose
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,10 +18,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Tab
@@ -28,6 +31,8 @@ import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,6 +47,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -58,7 +64,7 @@ import com.uyjang.korbittest.viewModel.ShowMarketData
 @Composable
 fun PreviewSearchBar() {
     KorbitTestTheme {
-        SearchTopBar()
+        SearchTopBar("") {}
     }
 }
 
@@ -78,6 +84,7 @@ fun PreviewSortButton() {
 @Preview(showBackground = true)
 @Composable
 fun PreviewMarketList() {
+    // 프리뷰 테스트 코드
     val marketDataPreprocessedDataList: List<MarketDataPreprocessedData> = listOf(
         MarketDataPreprocessedData(
             ShowMarketData(
@@ -132,12 +139,23 @@ fun PreviewMarketList() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchTopBar() {
+fun SearchTopBar(
+    searchText: String,
+    onSearchText: (searchText: String) -> Unit
+) {
+    val focusManager = LocalFocusManager.current
     KorbitMarketBox(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(15.dp)
+            .padding(top = 15.dp, start = 15.dp, end = 15.dp, bottom = 3.dp)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) {
+                focusManager.clearFocus()
+            }
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
@@ -148,7 +166,17 @@ fun SearchTopBar() {
                     .padding(10.dp),
                 tint = LocalContentColor.current
             )
-            Text(text = "검색")
+            TextField(
+                modifier = Modifier
+                    .height(50.dp)
+                    .fillMaxWidth(),
+                value = searchText,
+                onValueChange = { onSearchText(it) },
+                keyboardActions = KeyboardActions { focusManager.clearFocus() },
+                colors = TextFieldDefaults.textFieldColors(containerColor = Color.Transparent),
+                placeholder = { Text(text = "검색", fontSize = 12.sp) },
+                singleLine = true
+            )
         }
     }
 }

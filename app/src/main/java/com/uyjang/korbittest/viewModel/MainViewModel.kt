@@ -9,7 +9,11 @@ import com.google.gson.reflect.TypeToken
 import kotlin.math.abs
 
 class MainViewModel : ViewModel() {
+    var searchText by mutableStateOf("")
     var marketDataPreprocessedDataList by mutableStateOf(emptyList<MarketDataPreprocessedData>())
+
+    // 검색, 정렬을 위해 복구용 백업 리스트
+    private var tempMarketDataPreprocessedDataList by mutableStateOf(emptyList<MarketDataPreprocessedData>())
 
     init {
         val jsonData = """
@@ -1509,16 +1513,14 @@ class MainViewModel : ViewModel() {
         marketDataPreprocessedDataList = marketDataList.map { marketData ->
             val currencyPair = marketData.currencyPair.uppercase().replace("_", "/")
             val lastPrice = formatPrice(marketData.last.toDouble())
-            var priceChangeRate = marketData.changePercent
-            priceChangeRate = when {
-                marketData.changePercent.toDouble() > 0 -> "+$priceChangeRate%"
-                else -> "${String.format("%.2f", priceChangeRate.toDouble())}%"
+            val priceChangeRateDouble = marketData.changePercent.toDouble()
+            val priceChangeRate =
+                if (priceChangeRateDouble > 0) "+${marketData.changePercent}%"
+                else "${String.format("%.2f", priceChangeRateDouble)}%"
+            val priceChangePrice = formatPrice(marketData.change.toDouble()).let {
+                if (priceChangeRateDouble > 0) "+$it" else it
             }
-            var priceChangePrice = formatPrice(marketData.change.toDouble())
-            priceChangePrice = when {
-                marketData.changePercent.toDouble() > 0 -> "+$priceChangePrice"
-                else -> priceChangePrice
-            }
+
             val tradeVolume = marketData.volume
 
             MarketDataPreprocessedData(
@@ -1532,10 +1534,11 @@ class MainViewModel : ViewModel() {
                 originalMarketData = marketData
             )
         }
-
         // 리스트 조회 결과는 거래대금이 높은 순서대로 정렬하여 출력
         marketDataPreprocessedDataList =
             marketDataPreprocessedDataList.sortedByDescending { it.originalMarketData.volume.toDouble() }
+
+        tempMarketDataPreprocessedDataList = marketDataPreprocessedDataList
 
 //        Log.d("uyTest", marketDataList.toString())
     }
@@ -1552,52 +1555,58 @@ class MainViewModel : ViewModel() {
         }
     }
 
+    fun searchMarket(searchText: String) {
+        this.searchText = searchText
+        marketDataPreprocessedDataList = tempMarketDataPreprocessedDataList.filter { data ->
+            data.showMarketData.currencyPair.contains(searchText, ignoreCase = true)
+        }
+    }
+
     fun sortList(sortButtonNum: Int) {
+        searchText = ""
         when (sortButtonNum) {
             // 정렬 버튼 - 가상자산명 내림차순
             11 -> {
                 marketDataPreprocessedDataList =
-                    marketDataPreprocessedDataList.sortedByDescending { it.originalMarketData.currencyPair }
+                    tempMarketDataPreprocessedDataList.sortedByDescending { it.originalMarketData.currencyPair }
             }
             // 정렬 버튼 - 가상자산명 오름차순
             12 -> {
                 marketDataPreprocessedDataList =
-                    marketDataPreprocessedDataList.sortedBy { it.originalMarketData.currencyPair }
+                    tempMarketDataPreprocessedDataList.sortedBy { it.originalMarketData.currencyPair }
             }
             // 정렬 버튼 - 현재가 내림차순
             21 -> {
                 marketDataPreprocessedDataList =
-                    marketDataPreprocessedDataList.sortedByDescending { it.originalMarketData.last.toDouble() }
+                    tempMarketDataPreprocessedDataList.sortedByDescending { it.originalMarketData.last.toDouble() }
             }
             // 정렬 버튼 - 현재가 오름차순
             22 -> {
                 marketDataPreprocessedDataList =
-                    marketDataPreprocessedDataList.sortedBy { it.originalMarketData.last.toDouble() }
+                    tempMarketDataPreprocessedDataList.sortedBy { it.originalMarketData.last.toDouble() }
             }
             // 정렬 버튼 - 24시간 내림차순
             31 -> {
                 marketDataPreprocessedDataList =
-                    marketDataPreprocessedDataList.sortedByDescending { it.originalMarketData.changePercent.toDouble() }
+                    tempMarketDataPreprocessedDataList.sortedByDescending { it.originalMarketData.changePercent.toDouble() }
             }
             // 정렬 버튼 - 24시간 오름차순
             32 -> {
                 marketDataPreprocessedDataList =
-                    marketDataPreprocessedDataList.sortedBy { it.originalMarketData.changePercent.toDouble() }
+                    tempMarketDataPreprocessedDataList.sortedBy { it.originalMarketData.changePercent.toDouble() }
             }
             // 정렬 버튼 - 거래대금 내림차순
             41 -> {
                 marketDataPreprocessedDataList =
-                    marketDataPreprocessedDataList.sortedByDescending { it.originalMarketData.volume.toDouble() }
+                    tempMarketDataPreprocessedDataList.sortedByDescending { it.originalMarketData.volume.toDouble() }
             }
             // 정렬 버튼 - 거래대금 오름차순
             42 -> {
                 marketDataPreprocessedDataList =
-                    marketDataPreprocessedDataList.sortedBy { it.originalMarketData.volume.toDouble() }
+                    tempMarketDataPreprocessedDataList.sortedBy { it.originalMarketData.volume.toDouble() }
             }
 
-            else -> {
-
-            }
+            else -> {}
         }
     }
 }

@@ -1,11 +1,15 @@
 package com.uyjang.korbittest.view.fragment
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.fragment.app.viewModels
 import com.uyjang.korbittest.base.BaseFragment
@@ -28,8 +32,16 @@ class MainFragment : BaseFragment() {
                 modifier = Modifier.fillMaxSize(),
                 color = MaterialTheme.colorScheme.background
             ) {
-                Column(modifier = Modifier.fillMaxSize()) {
-                    SearchTopBar()
+                val focusManager = LocalFocusManager.current
+                Column(modifier = Modifier.fillMaxSize().clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) {
+                    focusManager.clearFocus()
+                }) {
+                    SearchTopBar(viewModel.searchText) { searchText ->
+                        viewModel.searchMarket(searchText)
+                    }
                     MarketTabScreen(viewModel.marketDataPreprocessedDataList) { sortButtonNum ->
                         viewModel.sortList(sortButtonNum)
                     }
@@ -42,6 +54,7 @@ class MainFragment : BaseFragment() {
 @Preview(showBackground = true)
 @Composable
 fun PreviewMarketList() {
+    // 프리뷰 테스트 코드
     val marketDataPreprocessedDataList: List<MarketDataPreprocessedData> = listOf(
         MarketDataPreprocessedData(
             ShowMarketData(
@@ -91,7 +104,7 @@ fun PreviewMarketList() {
 
     KorbitTestTheme {
         Column(modifier = Modifier.fillMaxSize()) {
-            SearchTopBar()
+            SearchTopBar("") {}
             MarketTabScreen(marketDataPreprocessedDataList) {}
         }
     }
