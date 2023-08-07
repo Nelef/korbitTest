@@ -1515,7 +1515,7 @@ class MainViewModel : ViewModel() {
             var priceChangeRate = marketData.changePercent
             priceChangeRate = when {
                 marketData.changePercent.toDouble() > 0 -> "+$priceChangeRate%"
-                else -> priceChangeRate
+                else -> "${String.format("%.2f", priceChangeRate.toDouble())}%"
             }
             var priceChangePrice = formatPrice(marketData.change.toDouble())
             priceChangePrice = when {
