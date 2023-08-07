@@ -20,13 +20,14 @@ import com.uyjang.korbittest.view.ui.theme.KorbitTestTheme
 
 @Preview(showBackground = true)
 @Composable
-fun PreviewKorbitBox() {
+fun PreviewKorbitMarketBox() {
     KorbitTestTheme {
-        KorbitBox() {
+        KorbitMarketBox() {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(100.dp),
+                    .height(50.dp)
+                    .padding(10.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
@@ -38,7 +39,7 @@ fun PreviewKorbitBox() {
 }
 
 @Composable
-fun KorbitBox(modifier: Modifier = Modifier, content: @Composable (() -> Unit)? = null) {
+fun KorbitMarketBox(modifier: Modifier = Modifier, content: @Composable (() -> Unit)? = null) {
     Box(
         modifier = Modifier
             .then(modifier)

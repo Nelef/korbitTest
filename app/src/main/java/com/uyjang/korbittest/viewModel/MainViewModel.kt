@@ -1510,7 +1510,7 @@ class MainViewModel : ViewModel() {
 
         // view용 마켓데이터 전처리
         marketDataPreprocessedDataList = marketDataList.map { marketData ->
-            val currencyPair = marketData.currencyPair.replace("_", "/")
+            val currencyPair = marketData.currencyPair.uppercase().replace("_", "/")
             val lastPrice = formatPrice(marketData.last.toDouble())
             var priceChangeRate = marketData.changePercent
             priceChangeRate = when {
