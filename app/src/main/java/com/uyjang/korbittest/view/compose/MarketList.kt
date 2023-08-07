@@ -169,7 +169,7 @@ fun SearchTopBar(
             TextField(
                 modifier = Modifier
                     .height(50.dp)
-                    .fillMaxWidth(),
+                    .fillMaxWidth().padding(end = 5.dp),
                 value = searchText,
                 onValueChange = { onSearchText(it) },
                 keyboardActions = KeyboardActions { focusManager.clearFocus() },
