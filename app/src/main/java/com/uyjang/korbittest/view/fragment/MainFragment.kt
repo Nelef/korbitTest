@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -33,15 +34,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.os.trace
 import androidx.fragment.app.viewModels
 import com.uyjang.korbittest.base.BaseFragment
 import com.uyjang.korbittest.view.compose.KorbitBox
 import com.uyjang.korbittest.view.ui.theme.KorbitTestTheme
 import com.uyjang.korbittest.viewModel.MainViewModel
 import com.uyjang.korbittest.viewModel.MarketData
-import kotlin.math.abs
+import com.uyjang.korbittest.viewModel.MarketDataPreprocessedData
+import com.uyjang.korbittest.viewModel.ShowMarketData
 
 class MainFragment : BaseFragment() {
 
@@ -56,7 +60,7 @@ class MainFragment : BaseFragment() {
             ) {
                 Column(modifier = Modifier.fillMaxSize()) {
                     TopBar()
-                    TabScreen(viewModel.marketDataList)
+                    TabScreen(viewModel.marketDataPreprocessedDataList)
                 }
             }
         }
@@ -66,39 +70,57 @@ class MainFragment : BaseFragment() {
 @Preview(showBackground = true)
 @Composable
 fun PreviewMainFragment() {
-    val marketDataList: List<MarketData> = listOf(
-        MarketData(
-            currencyPair = "hnt_krw",
-            timestamp = 1691301159586,
-            last = "2900",
-            open = "2900",
-            bid = "2522",
-            ask = "2900",
-            low = "2488",
-            high = "2900",
-            volume = "246.04376246",
-            change = "0",
-            changePercent = "0"
+    val marketDataPreprocessedDataList: List<MarketDataPreprocessedData> = listOf(
+        MarketDataPreprocessedData(
+            ShowMarketData(
+                currencyPair = "hnt/krw",
+                lastPrice = "2,523",
+                priceChangeRate = "+0.24%",
+                priceChangePrice = "+6.00",
+                tradeVolume = "45"
+            ),
+            MarketData(
+                currencyPair = "hnt_krw",
+                timestamp = 1691301159586,
+                last = "2900",
+                open = "2900",
+                bid = "2522",
+                ask = "2900",
+                low = "2488",
+                high = "2900",
+                volume = "45.23423",
+                change = "1",
+                changePercent = "1"
+            )
         ),
-        MarketData(
-            currencyPair = "bch_krw",
-            timestamp = 1691303226691,
-            last = "300500",
-            open = "297900",
-            bid = "300800",
-            ask = "301200",
-            low = "296100",
-            high = "301400",
-            volume = "135.54887090",
-            change = "2600",
-            changePercent = "0.87"
+        MarketDataPreprocessedData(
+            ShowMarketData(
+                currencyPair = "bch/krw",
+                lastPrice = "300,500",
+                priceChangeRate = "-0.87%", // (300500 - 297900) / 297900 * 100
+                priceChangePrice = "-2,600", // 297900 - 300500
+                tradeVolume = "1,351"
+            ),
+            MarketData(
+                currencyPair = "bch_krw",
+                timestamp = 1691303226691,
+                last = "300500",
+                open = "297900",
+                bid = "300800",
+                ask = "301200",
+                low = "296100",
+                high = "301400",
+                volume = "135.54887090",
+                change = "-1",
+                changePercent = "-1"
+            )
         )
     )
 
     KorbitTestTheme {
         Column(modifier = Modifier.fillMaxSize()) {
             TopBar()
-            TabScreen(marketDataList)
+            TabScreen(marketDataPreprocessedDataList)
         }
     }
 }
@@ -125,7 +147,7 @@ fun TopBar() {
 }
 
 @Composable
-fun TabScreen(marketDataList: List<MarketData>) {
+fun TabScreen(marketDataPreprocessedDataList: List<MarketDataPreprocessedData>) {
     var tabIndex by remember { mutableStateOf(0) }
 
     val tabs = listOf("마켓", "즐겨찾기")
@@ -162,14 +184,14 @@ fun TabScreen(marketDataList: List<MarketData>) {
                 .height(1.dp)
         )
         when (tabIndex) {
-            0 -> MarketList(marketDataList)
-            1 -> MarketList(marketDataList)
+            0 -> MarketList(marketDataPreprocessedDataList)
+            1 -> testList()
         }
     }
 }
 
 @Composable
-fun MarketList(marketDataList: List<MarketData>) {
+fun MarketList(marketDataPreprocessedDataList: List<MarketDataPreprocessedData>) {
     LazyColumn(
         Modifier.padding(horizontal = 15.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -177,8 +199,8 @@ fun MarketList(marketDataList: List<MarketData>) {
         item {
             Spacer(modifier = Modifier.height(8.dp))
         }
-        items(marketDataList) { marketData ->
-            MarketDataRow(marketData)
+        items(marketDataPreprocessedDataList) { marketDataPreprocessedData ->
+            MarketDataRow(marketDataPreprocessedData)
         }
         item {
             Spacer(modifier = Modifier.height(8.dp))
@@ -187,87 +209,79 @@ fun MarketList(marketDataList: List<MarketData>) {
 }
 
 @Composable
-fun MarketDataRow(marketData: MarketData) {
+fun MarketDataRow(marketDataPreprocessedData: MarketDataPreprocessedData) {
+    val showMarketData = marketDataPreprocessedData.showMarketData
     KorbitBox(modifier = Modifier.fillMaxWidth()) {
         Row(
-            Modifier.padding(8.dp),
+            Modifier
+                .height(50.dp)
+                .padding(8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier.size(25.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Star,
-                    contentDescription = "Bookmark Icon",
-                    modifier = Modifier.size(25.dp),
-                    tint = LocalContentColor.current
+            // 즐겨찾기
+            Icon(
+                modifier = Modifier.size(25.dp),
+                imageVector = Icons.Default.Star,
+                contentDescription = "Bookmark Icon",
+                tint = LocalContentColor.current
+            )
+
+            // 가상자산명 : 해당 거래의 통화쌍 (BTC/KRW, ETH/KRW 같은 형식으로 표기)
+            Text(modifier = Modifier.weight(1f), text = showMarketData.currencyPair)
+
+            // 현재가 : 최종 체결 가격
+            Text(
+                text = showMarketData.lastPrice,
+                modifier = Modifier.weight(1f), textAlign = TextAlign.End
+            )
+
+            Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End) {
+                val textColor = when {
+                    marketDataPreprocessedData.originalMarketData.change.toDouble() > 0 -> Color.Red
+                    marketDataPreprocessedData.originalMarketData.change.toDouble() < 0 -> Color.Blue
+                    else -> LocalContentColor.current
+                }
+                // 변동률 : 시작 가격 대비 현재가 차이 변화 비율
+                Text(
+                    text = showMarketData.priceChangeRate,
+                    color = textColor
+                )
+
+                // 변동가격 : 시작 가격 대비 현재가 차이
+                Text(
+                    text = showMarketData.priceChangePrice,
+                    color = textColor
                 )
             }
 
-            // 가상자산명 : 해당 거래의 통화쌍 (BTC/KRW, ETH/KRW 같은 형식으로 표기)
-            val currencyPair = marketData.currencyPair.replace("_", "/")
-            Box(modifier = Modifier.weight(1f)) {
-                Text(text = currencyPair)
-            }
-
-            // 현재가 : 최종 체결 가격
-            val lastPrice = formatPrice(marketData.last.toDouble())
-            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
-                Text(text = lastPrice)
-            }
-
-            Column(modifier = Modifier.weight(1f)) {
-                // 변동률 : 시작 가격 대비 현재가 차이 변화 비율
-                val openingPrice = marketData.open.toDouble()
-                val currentPrice = marketData.last.toDouble()
-                val priceChangeRate =
-                    String.format("%,.2f", (currentPrice - openingPrice) / openingPrice * 100)
-                val textColor = when {
-                    priceChangeRate.toDouble() > 0 -> Color.Red
-                    priceChangeRate.toDouble() < 0 -> Color.Blue
-                    else -> LocalContentColor.current
-                }
-                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
-                    Text(
-                        text = "$priceChangeRate%",
-                        color = textColor
-                    )
-                }
-
-                // 변동가격 : 시작 가격 대비 현재가 차이
-                val priceChange = formatPrice(openingPrice - currentPrice)
-                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
-                    Text(text = "$priceChange", color = textColor)
-                }
-            }
-
             // 거래대금 : 거래량
-            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
-                Text(text = String.format("%,d", marketData.volume.toDouble().toInt()))
-            }
-
-//            Text(text = "최종 체결 시각: ${marketData.timestamp}")
-//            Text(text = "시작 가격: ${marketData.open}")
-//            Text(text = "매수호가: ${marketData.bid}")
-//            Text(text = "매도호가: ${marketData.ask}")
-//            Text(text = "최저가: ${marketData.low}")
-//            Text(text = "최고가: ${marketData.high}")
-//            Text(text = "거래량: ${marketData.volume}")
-//            Text(text = "가격 변동: ${marketData.change}")
-//            Text(text = "가격 변동 비율: ${marketData.changePercent}")
+            Text(
+                text = showMarketData.tradeVolume,
+                modifier = Modifier.weight(1f),
+                textAlign = TextAlign.End
+            )
         }
     }
 }
 
-fun formatPrice(value: Double): String {
-    return when {
-        abs(value) >= 100 -> {
-            String.format("%,d", value.toInt())
-        }
+@Composable
+fun testList() {
+    // 데이터 리스트 생성
+    val itemList = (1..1000).map { "Item $it" }
 
-        else -> {
-            String.format("%,.2f", value)
+    // LazyColumn을 사용하여 리스트 생성
+    LazyColumn(Modifier.fillMaxWidth()) {
+        items(itemList) { item ->
+            // 리스트 아이템 컴포넌트
+            KorbitBox(
+                Modifier
+                    .fillMaxWidth()
+                    .width(20.dp)
+                    .padding(10.dp)
+            ) {
+                Text(text = item)
+            }
         }
     }
 }
