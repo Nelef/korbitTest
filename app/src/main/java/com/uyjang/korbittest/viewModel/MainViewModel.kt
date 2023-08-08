@@ -22,6 +22,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     // 검색, 정렬을 위해 복구용 백업 리스트
     private var tempMarketDataPreprocessedDataList by mutableStateOf(emptyList<MarketDataPreprocessedData>())
+    private var tempFavoriteMarketDataPreprocessedDataList by mutableStateOf(emptyList<MarketDataPreprocessedData>())
 
     // 마켓 리스트
     var marketDataPreprocessedDataList by mutableStateOf(emptyList<MarketDataPreprocessedData>())
@@ -1590,6 +1591,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         tempMarketDataPreprocessedDataList = marketDataPreprocessedDataList
+        tempFavoriteMarketDataPreprocessedDataList = favoriteMarketDataPreprocessedDataList
     }
 
     private fun formatPrice(value: Double): String {
@@ -1607,6 +1609,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun searchMarket(searchText: String) {
         this.searchText = searchText
         marketDataPreprocessedDataList = tempMarketDataPreprocessedDataList.filter { data ->
+            data.showMarketData.currencyPair.contains(searchText, ignoreCase = true)
+        }
+        favoriteMarketDataPreprocessedDataList = tempFavoriteMarketDataPreprocessedDataList.filter { data ->
             data.showMarketData.currencyPair.contains(searchText, ignoreCase = true)
         }
     }
