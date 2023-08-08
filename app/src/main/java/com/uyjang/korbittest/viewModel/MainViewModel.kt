@@ -3,7 +3,6 @@ package com.uyjang.korbittest.viewModel
 import android.app.Application
 import android.util.Log
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
@@ -12,28 +11,32 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.uyjang.korbittest.data.internal.FavoriteDataSource
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
+    init {
+        // 코루틴을 사용하여 getPreference의 Flow 값을 가져온 후 StateFlow에 설정
+        viewModelScope.launch {
+            initMarketData()
+        }
+    }
+
+    // 마켓, 즐겨찾기 리스트
+    var marketDataPreprocessedDataList by mutableStateOf(emptyList<MarketDataPreprocessedData>())
+    var favoriteMarketDataPreprocessedDataList by mutableStateOf(emptyList<MarketDataPreprocessedData>())
+
+    // 검색 기능
     var searchText by mutableStateOf("")
 
     // 검색, 정렬을 위해 복구용 백업 리스트
     private var tempMarketDataPreprocessedDataList by mutableStateOf(emptyList<MarketDataPreprocessedData>())
     private var tempFavoriteMarketDataPreprocessedDataList by mutableStateOf(emptyList<MarketDataPreprocessedData>())
 
-    // 마켓 리스트
-    var marketDataPreprocessedDataList by mutableStateOf(emptyList<MarketDataPreprocessedData>())
-
-    // 즐겨찾기 리스트
-    var favoriteMarketDataPreprocessedDataList by mutableStateOf(emptyList<MarketDataPreprocessedData>())
-
-    val favoriteDataSource = FavoriteDataSource(getApplication())
-
-    // 즐겨찾기 목록
-    var favorites by mutableStateOf(emptyList<String>())
+    // 즐겨찾기 기능
+    private val favoriteDataSource = FavoriteDataSource(getApplication())
+    private var favorites by mutableStateOf(emptyList<String>())
 
     // 즐겨찾기 설정
     fun setFavorites(favorite: String) {
@@ -48,15 +51,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun getFavorites(): Flow<List<String>> {
+    private fun getFavorites(): Flow<List<String>> {
         return favoriteDataSource.getPreference()
-    }
-
-    init {
-        // 코루틴을 사용하여 getPreference의 Flow 값을 가져온 후 StateFlow에 설정
-        viewModelScope.launch {
-            initMarketData()
-        }
     }
 
     private suspend fun initMarketData() {
@@ -1543,14 +1539,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
             """.trimIndent()
 
-        // TypeToken을 사용하여 Map<String, MarketData> 타입을 얻습니다.
+        // json 데이터 전처리
         val typeToken = object : TypeToken<Map<String, MarketData>>() {}.type
-
-        // JSON 데이터를 파싱하여 MarketData 객체들의 맵으로 변환합니다.
         val marketDataMap: Map<String, MarketData> = Gson().fromJson(jsonData, typeToken)
-
-        // 이제 currency_pair와 해당 MarketData 객체들의 맵을 얻었습니다.
-        // 필요한 경우 이를 리스트로 변환할 수 있습니다.
         val marketDataList = marketDataMap.entries.map { (currencyPair, data) ->
             data.copy(currencyPair = currencyPair)
         }
@@ -1566,7 +1557,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val priceChangePrice = formatPrice(marketData.change.toDouble()).let {
                 if (priceChangeRateDouble > 0) "+$it" else it
             }
-
             val tradeVolume = marketData.volume
 
             MarketDataPreprocessedData(
@@ -1611,9 +1601,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         marketDataPreprocessedDataList = tempMarketDataPreprocessedDataList.filter { data ->
             data.showMarketData.currencyPair.contains(searchText, ignoreCase = true)
         }
-        favoriteMarketDataPreprocessedDataList = tempFavoriteMarketDataPreprocessedDataList.filter { data ->
-            data.showMarketData.currencyPair.contains(searchText, ignoreCase = true)
-        }
+        favoriteMarketDataPreprocessedDataList =
+            tempFavoriteMarketDataPreprocessedDataList.filter { data ->
+                data.showMarketData.currencyPair.contains(searchText, ignoreCase = true)
+            }
     }
 
     fun sortList(sortButtonNum: Int) {
