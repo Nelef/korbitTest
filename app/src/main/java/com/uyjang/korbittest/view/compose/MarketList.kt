@@ -20,8 +20,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.rounded.StarOutline
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -41,12 +44,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PathFillType
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.StrokeJoin
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -92,7 +89,8 @@ fun PreviewMarketList() {
                 lastPrice = "2,523",
                 priceChangeRate = "+0.24%",
                 priceChangePrice = "+6.00",
-                tradeVolume = "45"
+                tradeVolume = "45",
+                favorite = false
             ),
             MarketData(
                 currencyPair = "hnt_krw",
@@ -114,7 +112,8 @@ fun PreviewMarketList() {
                 lastPrice = "300,500",
                 priceChangeRate = "-0.87%", // (300500 - 297900) / 297900 * 100
                 priceChangePrice = "-2,600", // 297900 - 300500
-                tradeVolume = "1,351"
+                tradeVolume = "1,351",
+                favorite = true
             ),
             MarketData(
                 currencyPair = "bch_krw",
@@ -134,7 +133,7 @@ fun PreviewMarketList() {
 
     KorbitTestTheme {
         Column(modifier = Modifier.fillMaxSize()) {
-            MarketTabScreen(marketDataPreprocessedDataList) {}
+            MarketTabScreen(marketDataPreprocessedDataList, marketDataPreprocessedDataList, {}) {}
         }
     }
 }
@@ -169,7 +168,8 @@ fun SearchTopBar(
             TextField(
                 modifier = Modifier
                     .height(50.dp)
-                    .fillMaxWidth().padding(end = 5.dp),
+                    .fillMaxWidth()
+                    .padding(end = 5.dp),
                 value = searchText,
                 onValueChange = { onSearchText(it) },
                 keyboardActions = KeyboardActions { focusManager.clearFocus() },
@@ -184,7 +184,9 @@ fun SearchTopBar(
 @Composable
 fun MarketTabScreen(
     marketDataPreprocessedDataList: List<MarketDataPreprocessedData>,
-    onClickSortButton: (sortButtonNum: Int) -> Unit
+    favoriteMarketDataPreprocessedDataList: List<MarketDataPreprocessedData>,
+    onClickSortButton: (sortButtonNum: Int) -> Unit,
+    onFavoriteClick: (currencyPair: String) -> Unit
 ) {
     var tabIndex by remember { mutableStateOf(0) }
     val tabs = listOf("마켓", "즐겨찾기")
@@ -292,11 +294,15 @@ fun MarketTabScreen(
         )
         when (tabIndex) {
             0 -> {
-                MarketList(marketDataPreprocessedDataList)
+                MarketList(marketDataPreprocessedDataList) { currencyPair ->
+                    onFavoriteClick(currencyPair)
+                }
             }
 
             1 -> {
-                testList()
+                MarketList(favoriteMarketDataPreprocessedDataList) { currencyPair ->
+                    onFavoriteClick(currencyPair)
+                }
             }
         }
     }
@@ -350,7 +356,7 @@ fun SortButton(
                     modifier = Modifier
                         .size(size)
                         .offset(y = offset),
-                    imageVector = rememberArrowDropUp(),
+                    imageVector = Icons.Default.ArrowDropUp,
                     contentDescription = "ArrowDropUp Icon",
                     tint = arrowUpTint
                 )
@@ -358,7 +364,7 @@ fun SortButton(
                     modifier = Modifier
                         .size(size)
                         .offset(y = -offset),
-                    imageVector = rememberArrowDropDown(),
+                    imageVector = Icons.Default.ArrowDropDown,
                     contentDescription = "ArrowDropDown Icon",
                     tint = arrowDownTint
                 )
@@ -368,67 +374,10 @@ fun SortButton(
 }
 
 @Composable
-fun rememberArrowDropUp(): ImageVector {
-    return remember {
-        ImageVector.Builder(
-            name = "arrow_drop_up",
-            defaultWidth = 40.0.dp,
-            defaultHeight = 40.0.dp,
-            viewportWidth = 40.0f,
-            viewportHeight = 40.0f
-        ).apply {
-            path(
-                fill = SolidColor(Color.Black),
-                fillAlpha = 1f,
-                stroke = null,
-                strokeAlpha = 1f,
-                strokeLineWidth = 1.0f,
-                strokeLineCap = StrokeCap.Butt,
-                strokeLineJoin = StrokeJoin.Miter,
-                strokeLineMiter = 1f,
-                pathFillType = PathFillType.NonZero
-            ) {
-                moveTo(11.875f, 23.208f)
-                lineTo(20f, 15.083f)
-                lineToRelative(8.125f, 8.125f)
-                close()
-            }
-        }.build()
-    }
-}
-
-@Composable
-fun rememberArrowDropDown(): ImageVector {
-    return remember {
-        ImageVector.Builder(
-            name = "arrow_drop_down",
-            defaultWidth = 40.0.dp,
-            defaultHeight = 40.0.dp,
-            viewportWidth = 40.0f,
-            viewportHeight = 40.0f
-        ).apply {
-            path(
-                fill = SolidColor(Color.Black),
-                fillAlpha = 1f,
-                stroke = null,
-                strokeAlpha = 1f,
-                strokeLineWidth = 1.0f,
-                strokeLineCap = StrokeCap.Butt,
-                strokeLineJoin = StrokeJoin.Miter,
-                strokeLineMiter = 1f,
-                pathFillType = PathFillType.NonZero
-            ) {
-                moveTo(20f, 24.875f)
-                lineToRelative(-8.125f, -8.083f)
-                horizontalLineToRelative(16.25f)
-                close()
-            }
-        }.build()
-    }
-}
-
-@Composable
-fun MarketList(marketDataPreprocessedDataList: List<MarketDataPreprocessedData>) {
+fun MarketList(
+    marketDataPreprocessedDataList: List<MarketDataPreprocessedData>,
+    onFavoriteClick: (currencyPair: String) -> Unit
+) {
     LazyColumn(
         Modifier.padding(horizontal = 15.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -436,7 +385,7 @@ fun MarketList(marketDataPreprocessedDataList: List<MarketDataPreprocessedData>)
         item {
         }
         items(marketDataPreprocessedDataList) { marketDataPreprocessedData ->
-            MarketDataRow(marketDataPreprocessedData)
+            MarketDataRow(marketDataPreprocessedData) { onFavoriteClick(marketDataPreprocessedData.showMarketData.currencyPair) }
         }
         item {
             Spacer(modifier = Modifier.height(8.dp))
@@ -445,7 +394,10 @@ fun MarketList(marketDataPreprocessedDataList: List<MarketDataPreprocessedData>)
 }
 
 @Composable
-fun MarketDataRow(marketDataPreprocessedData: MarketDataPreprocessedData) {
+fun MarketDataRow(
+    marketDataPreprocessedData: MarketDataPreprocessedData,
+    onFavoriteClick: () -> Unit
+) {
     val showMarketData = marketDataPreprocessedData.showMarketData
     KorbitMarketBox(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -457,10 +409,11 @@ fun MarketDataRow(marketDataPreprocessedData: MarketDataPreprocessedData) {
         ) {
             // 즐겨찾기
             Icon(
-                modifier = Modifier.size(25.dp),
-                imageVector = Icons.Default.Star,
-                contentDescription = "Bookmark Icon",
-                tint = LocalContentColor.current
+                modifier = Modifier
+                    .clickable { onFavoriteClick() }
+                    .size(25.dp),
+                imageVector = if (showMarketData.favorite) Icons.Rounded.Star else Icons.Rounded.StarOutline,
+                contentDescription = "Favorite Icon"
             )
 
             // 가상자산명 : 해당 거래의 통화쌍 (BTC/KRW, ETH/KRW 같은 형식으로 표기)

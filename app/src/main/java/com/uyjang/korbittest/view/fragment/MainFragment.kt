@@ -33,18 +33,24 @@ class MainFragment : BaseFragment() {
                 color = MaterialTheme.colorScheme.background
             ) {
                 val focusManager = LocalFocusManager.current
-                Column(modifier = Modifier.fillMaxSize().clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null
-                ) {
-                    focusManager.clearFocus()
-                }) {
+                Column(modifier = Modifier
+                    .fillMaxSize()
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) {
+                        focusManager.clearFocus()
+                    }) {
                     SearchTopBar(viewModel.searchText) { searchText ->
                         viewModel.searchMarket(searchText)
                     }
-                    MarketTabScreen(viewModel.marketDataPreprocessedDataList) { sortButtonNum ->
-                        viewModel.sortList(sortButtonNum)
-                    }
+                    MarketTabScreen(
+                        marketDataPreprocessedDataList = viewModel.marketDataPreprocessedDataList,
+                        favoriteMarketDataPreprocessedDataList = viewModel.favoriteMarketDataPreprocessedDataList,
+                        onClickSortButton = { sortButtonNum ->
+                            viewModel.sortList(sortButtonNum)
+                        }
+                    ) { currencyPair -> viewModel.setFavorites(currencyPair) }
                 }
             }
         }
@@ -62,7 +68,8 @@ fun PreviewMarketList() {
                 lastPrice = "2,523",
                 priceChangeRate = "+0.24%",
                 priceChangePrice = "+6.00",
-                tradeVolume = "45"
+                tradeVolume = "45",
+                favorite = false
             ),
             MarketData(
                 currencyPair = "hnt_krw",
@@ -84,7 +91,8 @@ fun PreviewMarketList() {
                 lastPrice = "300,500",
                 priceChangeRate = "-0.87%", // (300500 - 297900) / 297900 * 100
                 priceChangePrice = "-2,600", // 297900 - 300500
-                tradeVolume = "1,351"
+                tradeVolume = "1,351",
+                favorite = true
             ),
             MarketData(
                 currencyPair = "bch_krw",
@@ -105,7 +113,7 @@ fun PreviewMarketList() {
     KorbitTestTheme {
         Column(modifier = Modifier.fillMaxSize()) {
             SearchTopBar("") {}
-            MarketTabScreen(marketDataPreprocessedDataList) {}
+            MarketTabScreen(marketDataPreprocessedDataList, marketDataPreprocessedDataList, {}) {}
         }
     }
 }
