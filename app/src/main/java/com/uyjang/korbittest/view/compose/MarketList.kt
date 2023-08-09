@@ -53,6 +53,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.uyjang.korbittest.view.ui.theme.KorbitTestTheme
+import com.uyjang.korbittest.view.ui.theme.LightBlue
+import com.uyjang.korbittest.view.ui.theme.LightRed
 import com.uyjang.korbittest.viewModel.MarketData
 import com.uyjang.korbittest.viewModel.MarketDataPreprocessedData
 import com.uyjang.korbittest.viewModel.ShowMarketData
@@ -456,8 +458,8 @@ fun MarketDataRow(
 
             Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End) {
                 val textColor = when {
-                    marketDataPreprocessedData.originalMarketData.change.toDouble() > 0 -> Color.Red
-                    marketDataPreprocessedData.originalMarketData.change.toDouble() < 0 -> Color.Blue
+                    marketDataPreprocessedData.originalMarketData.change.toDouble() > 0 -> LightRed
+                    marketDataPreprocessedData.originalMarketData.change.toDouble() < 0 -> LightBlue
                     else -> LocalContentColor.current
                 }
                 // 변동률 : 시작 가격 대비 현재가 차이 변화 비율
