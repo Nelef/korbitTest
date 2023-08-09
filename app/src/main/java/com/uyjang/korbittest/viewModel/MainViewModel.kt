@@ -1,16 +1,14 @@
 package com.uyjang.korbittest.viewModel
 
 import android.app.Application
-import android.util.Log
+import android.widget.Toast
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import com.uyjang.korbittest.data.internal.FavoriteDataSource
-import com.uyjang.korbittest.data.remote.api.ApiService
 import com.uyjang.korbittest.data.remote.repository.ApiServiceRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -24,11 +22,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             repository = ApiServiceRepository()
             favoriteDataSource = FavoriteDataSource(getApplication())
             initMarketData()
+            // 리스트 조회 결과는 거래대금이 높은 순서대로 정렬하여 출력
+            sortList(sortButtonNum)
         }
     }
 
     // Api 연결
     lateinit var repository: ApiServiceRepository
+    var marketDataList: List<MarketData>? = null
 
     // 마켓, 즐겨찾기 리스트
     var marketDataPreprocessedDataList by mutableStateOf(emptyList<MarketDataPreprocessedData>())
@@ -36,6 +37,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     // 검색 기능
     var searchText by mutableStateOf("")
+
+    // 정렬 기능
+    var sortButtonNum by mutableIntStateOf(41)
 
     // 검색, 정렬을 위해 복구용 백업 리스트
     private var tempMarketDataPreprocessedDataList by mutableStateOf(emptyList<MarketDataPreprocessedData>())
@@ -55,6 +59,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             favoriteDataSource.setPreference(favorites)
             initMarketData()
+            sortList(sortButtonNum)
         }
     }
 
@@ -62,13 +67,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         return favoriteDataSource.getPreference()
     }
 
-    private suspend fun initMarketData() {
-        favorites = getFavorites().first()
-        Log.d("uyTest", favorites.toString())
-
+    // api 호출
+    private suspend fun getTickerDetails() {
+        Toast.makeText(getApplication(), "모든 시장 현황 api 요청합니다.", Toast.LENGTH_SHORT).show()
         var tickerDetails by mutableStateOf(repository.fetchTickerDetails())
-
-        val marketDataList = tickerDetails.map { (currencyPair, tickerDetail) ->
+        marketDataList = tickerDetails.map { (currencyPair, tickerDetail) ->
             MarketData(
                 currencyPair = currencyPair,
                 timestamp = tickerDetail.timestamp,
@@ -83,9 +86,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 changePercent = tickerDetail.changePercent
             )
         }
+    }
+
+    private suspend fun initMarketData() {
+        favorites = getFavorites().first()
+
+        // 처음에만 수행
+        if (marketDataList == null) {
+            // api 조회
+            getTickerDetails()
+        }
 
         // view용 마켓데이터 전처리
-        marketDataPreprocessedDataList = marketDataList.map { marketData ->
+        marketDataPreprocessedDataList = marketDataList!!.map { marketData ->
             val currencyPair = marketData.currencyPair.uppercase().replace("_", "/")
             val lastPrice = formatPrice(marketData.last.toDouble())
             val priceChangeRateDouble = marketData.changePercent.toDouble()
@@ -109,15 +122,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 originalMarketData = marketData
             )
         }
-        // 리스트 조회 결과는 거래대금이 높은 순서대로 정렬하여 출력
-        marketDataPreprocessedDataList =
-            marketDataPreprocessedDataList.sortedByDescending { it.originalMarketData.volume.toDouble() }
 
         // 즐겨찾기 리스트
         favoriteMarketDataPreprocessedDataList = marketDataPreprocessedDataList.filter { data ->
             data.showMarketData.currencyPair in favorites
         }
 
+        // 복구용 리스트 저장
         tempMarketDataPreprocessedDataList = marketDataPreprocessedDataList
         tempFavoriteMarketDataPreprocessedDataList = favoriteMarketDataPreprocessedDataList
     }
@@ -146,51 +157,70 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun sortList(sortButtonNum: Int) {
-        searchText = ""
         when (sortButtonNum) {
             // 정렬 버튼 - 가상자산명 내림차순
             11 -> {
-                marketDataPreprocessedDataList =
+                tempMarketDataPreprocessedDataList =
                     tempMarketDataPreprocessedDataList.sortedByDescending { it.originalMarketData.currencyPair }
+                tempFavoriteMarketDataPreprocessedDataList =
+                    tempFavoriteMarketDataPreprocessedDataList.sortedByDescending { it.originalMarketData.currencyPair }
             }
             // 정렬 버튼 - 가상자산명 오름차순
             12 -> {
-                marketDataPreprocessedDataList =
+                tempMarketDataPreprocessedDataList =
                     tempMarketDataPreprocessedDataList.sortedBy { it.originalMarketData.currencyPair }
+                tempFavoriteMarketDataPreprocessedDataList =
+                    tempFavoriteMarketDataPreprocessedDataList.sortedBy { it.originalMarketData.currencyPair }
             }
             // 정렬 버튼 - 현재가 내림차순
             21 -> {
-                marketDataPreprocessedDataList =
+                tempMarketDataPreprocessedDataList =
                     tempMarketDataPreprocessedDataList.sortedByDescending { it.originalMarketData.last.toDouble() }
+                tempFavoriteMarketDataPreprocessedDataList =
+                    tempFavoriteMarketDataPreprocessedDataList.sortedByDescending { it.originalMarketData.last.toDouble() }
             }
             // 정렬 버튼 - 현재가 오름차순
             22 -> {
-                marketDataPreprocessedDataList =
+                tempMarketDataPreprocessedDataList =
                     tempMarketDataPreprocessedDataList.sortedBy { it.originalMarketData.last.toDouble() }
+                tempFavoriteMarketDataPreprocessedDataList =
+                    tempFavoriteMarketDataPreprocessedDataList.sortedBy { it.originalMarketData.last.toDouble() }
             }
             // 정렬 버튼 - 24시간 내림차순
             31 -> {
-                marketDataPreprocessedDataList =
+                tempMarketDataPreprocessedDataList =
                     tempMarketDataPreprocessedDataList.sortedByDescending { it.originalMarketData.changePercent.toDouble() }
+                tempFavoriteMarketDataPreprocessedDataList =
+                    tempFavoriteMarketDataPreprocessedDataList.sortedByDescending { it.originalMarketData.changePercent.toDouble() }
             }
             // 정렬 버튼 - 24시간 오름차순
             32 -> {
-                marketDataPreprocessedDataList =
+                tempMarketDataPreprocessedDataList =
                     tempMarketDataPreprocessedDataList.sortedBy { it.originalMarketData.changePercent.toDouble() }
+                tempFavoriteMarketDataPreprocessedDataList =
+                    tempFavoriteMarketDataPreprocessedDataList.sortedBy { it.originalMarketData.changePercent.toDouble() }
             }
             // 정렬 버튼 - 거래대금 내림차순
             41 -> {
-                marketDataPreprocessedDataList =
+                tempMarketDataPreprocessedDataList =
                     tempMarketDataPreprocessedDataList.sortedByDescending { it.originalMarketData.volume.toDouble() }
+                tempFavoriteMarketDataPreprocessedDataList =
+                    tempFavoriteMarketDataPreprocessedDataList.sortedByDescending { it.originalMarketData.volume.toDouble() }
             }
             // 정렬 버튼 - 거래대금 오름차순
             42 -> {
-                marketDataPreprocessedDataList =
+                tempMarketDataPreprocessedDataList =
                     tempMarketDataPreprocessedDataList.sortedBy { it.originalMarketData.volume.toDouble() }
+                tempFavoriteMarketDataPreprocessedDataList =
+                    tempFavoriteMarketDataPreprocessedDataList.sortedBy { it.originalMarketData.volume.toDouble() }
             }
 
             else -> {}
         }
+        marketDataPreprocessedDataList = tempMarketDataPreprocessedDataList
+        favoriteMarketDataPreprocessedDataList = tempFavoriteMarketDataPreprocessedDataList
+
+        searchMarket(searchText)
     }
 }
 

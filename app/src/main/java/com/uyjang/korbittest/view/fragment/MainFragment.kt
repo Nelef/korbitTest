@@ -47,8 +47,10 @@ class MainFragment : BaseFragment() {
                     MarketTabScreen(
                         marketDataPreprocessedDataList = viewModel.marketDataPreprocessedDataList,
                         favoriteMarketDataPreprocessedDataList = viewModel.favoriteMarketDataPreprocessedDataList,
+                        sortButtonNum = viewModel.sortButtonNum,
                         onClickSortButton = { sortButtonNum ->
-                            viewModel.sortList(sortButtonNum)
+                            viewModel.sortButtonNum = sortButtonNum
+                            viewModel.sortList(viewModel.sortButtonNum)
                         }
                     ) { currencyPair -> viewModel.setFavorites(currencyPair) }
                 }
@@ -113,7 +115,7 @@ fun PreviewMarketList() {
     KorbitTestTheme {
         Column(modifier = Modifier.fillMaxSize()) {
             SearchTopBar("") {}
-            MarketTabScreen(marketDataPreprocessedDataList, marketDataPreprocessedDataList, {}) {}
+            MarketTabScreen(marketDataPreprocessedDataList, marketDataPreprocessedDataList, 11, {}) {}
         }
     }
 }

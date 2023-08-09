@@ -38,7 +38,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -133,7 +133,11 @@ fun PreviewMarketList() {
 
     KorbitTestTheme {
         Column(modifier = Modifier.fillMaxSize()) {
-            MarketTabScreen(marketDataPreprocessedDataList, marketDataPreprocessedDataList, {}) {}
+            MarketTabScreen(
+                marketDataPreprocessedDataList,
+                marketDataPreprocessedDataList,
+                11,
+                {}) {}
         }
     }
 }
@@ -185,12 +189,13 @@ fun SearchTopBar(
 fun MarketTabScreen(
     marketDataPreprocessedDataList: List<MarketDataPreprocessedData>,
     favoriteMarketDataPreprocessedDataList: List<MarketDataPreprocessedData>,
+    sortButtonNum: Int,
     onClickSortButton: (sortButtonNum: Int) -> Unit,
     onFavoriteClick: (currencyPair: String) -> Unit
 ) {
-    var tabIndex by remember { mutableStateOf(0) }
+    var tabIndex by remember { mutableIntStateOf(0) }
     val tabs = listOf("마켓", "즐겨찾기")
-    val sortButtons by remember { mutableStateOf(List(4) { mutableStateOf(0) }) }
+    var sortButtonNum by remember { mutableIntStateOf(sortButtonNum) }
 
     Column {
         TabRow(
@@ -214,10 +219,7 @@ fun MarketTabScreen(
             tabs.forEachIndexed { index, title ->
                 Tab(text = { Text(title) },
                     selected = tabIndex == index,
-                    onClick = {
-                        tabIndex = index
-                        sortButtons.forEach { it.value = 0 }
-                    }
+                    onClick = { tabIndex = index }
                 )
             }
         }
@@ -241,54 +243,75 @@ fun MarketTabScreen(
             )
             SortButton(
                 onClick = {
-                    sortButtons[0].value = (sortButtons[0].value % 2) + 1
-                    sortButtons[1].value = 0
-                    sortButtons[2].value = 0
-                    sortButtons[3].value = 0
-                    onClickSortButton(if (sortButtons[0].value == 1) 11 else 12)
+                    when (sortButtonNum) {
+                        !in 11..12 -> sortButtonNum = 11
+                        11 -> sortButtonNum = 12
+                        12 -> sortButtonNum = 11
+                    }
+                    onClickSortButton(sortButtonNum)
                 },
                 modifier = Modifier.weight(1.2f),
                 contentAlign = Alignment.CenterStart,
                 text = "가상자산명",
-                currentSortNum = sortButtons[0].value
+                currentSortNum = when (sortButtonNum) {
+                    11 -> 1
+                    12 -> 2
+                    else -> 0
+                }
             )
             SortButton(
                 onClick = {
-                    sortButtons[0].value = 0
-                    sortButtons[1].value = (sortButtons[1].value % 2) + 1
-                    sortButtons[2].value = 0
-                    sortButtons[3].value = 0
-                    onClickSortButton(if (sortButtons[1].value == 1) 21 else 22)
-                }, modifier = Modifier.weight(1f),
+                    when (sortButtonNum) {
+                        !in 21..22 -> sortButtonNum = 21
+                        21 -> sortButtonNum = 22
+                        22 -> sortButtonNum = 21
+                    }
+                    onClickSortButton(sortButtonNum)
+                },
+                modifier = Modifier.weight(1f),
                 contentAlign = Alignment.CenterEnd,
                 text = "현재가",
-                currentSortNum = sortButtons[1].value
+                currentSortNum = when (sortButtonNum) {
+                    21 -> 1
+                    22 -> 2
+                    else -> 0
+                }
             )
             SortButton(
                 onClick = {
-                    sortButtons[0].value = 0
-                    sortButtons[1].value = 0
-                    sortButtons[2].value = (sortButtons[2].value % 2) + 1
-                    sortButtons[3].value = 0
-                    onClickSortButton(if (sortButtons[2].value == 1) 31 else 32)
+                    when (sortButtonNum) {
+                        !in 31..32 -> sortButtonNum = 31
+                        31 -> sortButtonNum = 32
+                        32 -> sortButtonNum = 31
+                    }
+                    onClickSortButton(sortButtonNum)
                 },
                 modifier = Modifier.weight(1f),
                 contentAlign = Alignment.CenterEnd,
                 text = "24시간",
-                currentSortNum = sortButtons[2].value
+                currentSortNum = when (sortButtonNum) {
+                    31 -> 1
+                    32 -> 2
+                    else -> 0
+                }
             )
             SortButton(
                 onClick = {
-                    sortButtons[0].value = 0
-                    sortButtons[1].value = 0
-                    sortButtons[2].value = 0
-                    sortButtons[3].value = (sortButtons[3].value % 2) + 1
-                    onClickSortButton(if (sortButtons[3].value == 1) 41 else 42)
+                    when (sortButtonNum) {
+                        !in 41..42 -> sortButtonNum = 41
+                        41 -> sortButtonNum = 42
+                        42 -> sortButtonNum = 41
+                    }
+                    onClickSortButton(sortButtonNum)
                 },
                 modifier = Modifier.weight(1f),
                 contentAlign = Alignment.CenterEnd,
                 text = "거래대금",
-                currentSortNum = sortButtons[3].value
+                currentSortNum = when (sortButtonNum) {
+                    41 -> 1
+                    42 -> 2
+                    else -> 0
+                }
             )
         }
         Divider(
