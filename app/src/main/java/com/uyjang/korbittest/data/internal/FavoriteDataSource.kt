@@ -23,7 +23,7 @@ class FavoriteDataSource(private val context: Context) {
                 try {
                     Gson().fromJson(json, object : TypeToken<List<String>>() {}.type)
                 } catch (e: JsonSyntaxException) {
-                    emptyList<String>()
+                    emptyList()
                 }
             }
         }
