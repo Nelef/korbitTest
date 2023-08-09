@@ -8,9 +8,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.uyjang.korbittest.base.UiState
 import com.uyjang.korbittest.data.internal.FavoriteDataSource
+import com.uyjang.korbittest.data.remote.model.TickerDetail
+import com.uyjang.korbittest.data.remote.repository.ApiResult
 import com.uyjang.korbittest.data.remote.repository.ApiServiceRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlin.math.abs
@@ -26,6 +30,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             sortList(sortButtonNum)
         }
     }
+
+    // UIState(현재 ui 상태 확인용)
+    var viewState by mutableStateOf<UiState<Unit>>(UiState.None)
 
     // Api 연결
     lateinit var repository: ApiServiceRepository
@@ -70,7 +77,25 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     // api 호출
     private suspend fun getTickerDetails() {
         Toast.makeText(getApplication(), "모든 시장 현황 api 요청합니다.", Toast.LENGTH_SHORT).show()
-        var tickerDetails by mutableStateOf(repository.fetchTickerDetails())
+        var tickerDetails by mutableStateOf<Map<String, TickerDetail>>(emptyMap())
+
+        repository.fetchTickerDetails().collectLatest {result ->
+            tickerDetails = when (result) {
+                is ApiResult.Loading -> {
+                    viewState = UiState.Loading
+                    tickerDetails
+                }
+                is ApiResult.Error -> {
+                    viewState = UiState.Error("api 요청에 실패하였습니다.")
+                    emptyMap()
+                }
+                is ApiResult.Success -> {
+                    viewState = UiState.None
+                    result.data
+                }
+            }
+        }
+
         marketDataList = tickerDetails.map { (currencyPair, tickerDetail) ->
             MarketData(
                 currencyPair = currencyPair,

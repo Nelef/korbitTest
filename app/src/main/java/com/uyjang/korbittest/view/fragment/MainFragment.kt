@@ -15,7 +15,10 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import com.uyjang.korbittest.base.BaseFragment
+import com.uyjang.korbittest.base.UiState
+import com.uyjang.korbittest.view.compose.AlertDialog
 import com.uyjang.korbittest.view.compose.FloatingButton
+import com.uyjang.korbittest.view.compose.Loading
 import com.uyjang.korbittest.view.compose.MarketTabScreen
 import com.uyjang.korbittest.view.compose.SearchTopBar
 import com.uyjang.korbittest.view.ui.theme.KorbitTestTheme
@@ -62,6 +65,20 @@ class MainFragment : BaseFragment() {
             }
         }
         baseCompose.surface = {
+            when (val uiState = viewModel.viewState) {
+                is UiState.Loading -> {
+                    Loading()
+                }
+
+                is UiState.Error -> {
+                    AlertDialog(
+                        contentText = uiState.message,
+                    ) { viewModel.viewState = UiState.None }
+                }
+
+                else -> {}
+            }
+
             FloatingButton {
                 lifecycleScope.launch(Dispatchers.Main) {
                     viewModel.marketDataList = null
@@ -128,7 +145,11 @@ fun PreviewMarketList() {
     KorbitTestTheme {
         Column(modifier = Modifier.fillMaxSize()) {
             SearchTopBar("") {}
-            MarketTabScreen(marketDataPreprocessedDataList, marketDataPreprocessedDataList, 11, {}) {}
+            MarketTabScreen(
+                marketDataPreprocessedDataList,
+                marketDataPreprocessedDataList,
+                11,
+                {}) {}
         }
         FloatingButton {
 
