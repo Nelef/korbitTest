@@ -14,15 +14,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.rounded.ArrowDropDown
+import androidx.compose.material.icons.rounded.ArrowDropUp
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.icons.rounded.StarOutline
 import androidx.compose.material3.Divider
@@ -229,10 +229,16 @@ fun MarketTabScreen(
         Row(
             Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 15.dp),
+                .padding(horizontal = 23.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Text(
+                modifier = Modifier
+                    .size(25.dp)
+                    .wrapContentSize(Alignment.Center),
+                text = "즐겨\n찾기",
+            )
             SortButton(
                 onClick = {
                     sortButtons[0].value = (sortButtons[0].value % 2) + 1
@@ -241,12 +247,11 @@ fun MarketTabScreen(
                     sortButtons[3].value = 0
                     onClickSortButton(if (sortButtons[0].value == 1) 11 else 12)
                 },
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1.2f),
                 contentAlign = Alignment.CenterStart,
                 text = "가상자산명",
                 currentSortNum = sortButtons[0].value
             )
-            Spacer(Modifier.size(25.dp))
             SortButton(
                 onClick = {
                     sortButtons[0].value = 0
@@ -347,7 +352,6 @@ fun SortButton(
         contentAlignment = contentAlign
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Spacer(modifier = Modifier.width(3.dp))
             Text(text = text, style = textStyle)
             Column {
                 val size = 23.dp
@@ -356,7 +360,7 @@ fun SortButton(
                     modifier = Modifier
                         .size(size)
                         .offset(y = offset),
-                    imageVector = Icons.Default.ArrowDropUp,
+                    imageVector = Icons.Rounded.ArrowDropUp,
                     contentDescription = "ArrowDropUp Icon",
                     tint = arrowUpTint
                 )
@@ -364,7 +368,7 @@ fun SortButton(
                     modifier = Modifier
                         .size(size)
                         .offset(y = -offset),
-                    imageVector = Icons.Default.ArrowDropDown,
+                    imageVector = Icons.Rounded.ArrowDropDown,
                     contentDescription = "ArrowDropDown Icon",
                     tint = arrowDownTint
                 )
@@ -385,7 +389,9 @@ fun MarketList(
         item {
         }
         items(marketDataPreprocessedDataList) { marketDataPreprocessedData ->
-            MarketDataRow(marketDataPreprocessedData) { onFavoriteClick(marketDataPreprocessedData.showMarketData.currencyPair) }
+            MarketDataRow(marketDataPreprocessedData) {
+                onFavoriteClick(marketDataPreprocessedData.showMarketData.currencyPair)
+            }
         }
         item {
             Spacer(modifier = Modifier.height(8.dp))
@@ -417,7 +423,7 @@ fun MarketDataRow(
             )
 
             // 가상자산명 : 해당 거래의 통화쌍 (BTC/KRW, ETH/KRW 같은 형식으로 표기)
-            Text(modifier = Modifier.weight(1f), text = showMarketData.currencyPair)
+            Text(modifier = Modifier.weight(1.2f), text = showMarketData.currencyPair)
 
             // 현재가 : 최종 체결 가격
             Text(
@@ -450,27 +456,6 @@ fun MarketDataRow(
                 modifier = Modifier.weight(1f),
                 textAlign = TextAlign.End
             )
-        }
-    }
-}
-
-@Composable
-fun testList() {
-    // 데이터 리스트 생성
-    val itemList = (1..1000).map { "Item $it" }
-
-    // LazyColumn을 사용하여 리스트 생성
-    LazyColumn(Modifier.fillMaxWidth()) {
-        items(itemList) { item ->
-            // 리스트 아이템 컴포넌트
-            KorbitMarketBox(
-                Modifier
-                    .fillMaxWidth()
-                    .width(20.dp)
-                    .padding(10.dp)
-            ) {
-                Text(text = item)
-            }
         }
     }
 }
