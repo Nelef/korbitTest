@@ -88,7 +88,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private suspend fun initMarketData() {
+    suspend fun initMarketData() {
         favorites = getFavorites().first()
 
         // 처음에만 수행

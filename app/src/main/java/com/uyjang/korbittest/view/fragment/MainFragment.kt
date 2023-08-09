@@ -12,7 +12,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewModelScope
 import com.uyjang.korbittest.base.BaseFragment
+import com.uyjang.korbittest.view.compose.FloatingButton
 import com.uyjang.korbittest.view.compose.MarketTabScreen
 import com.uyjang.korbittest.view.compose.SearchTopBar
 import com.uyjang.korbittest.view.ui.theme.KorbitTestTheme
@@ -20,6 +23,8 @@ import com.uyjang.korbittest.viewModel.MainViewModel
 import com.uyjang.korbittest.viewModel.MarketData
 import com.uyjang.korbittest.viewModel.MarketDataPreprocessedData
 import com.uyjang.korbittest.viewModel.ShowMarketData
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MainFragment : BaseFragment() {
 
@@ -53,6 +58,14 @@ class MainFragment : BaseFragment() {
                             viewModel.sortList(viewModel.sortButtonNum)
                         }
                     ) { currencyPair -> viewModel.setFavorites(currencyPair) }
+                }
+            }
+        }
+        baseCompose.surface = {
+            FloatingButton {
+                lifecycleScope.launch(Dispatchers.Main) {
+                    viewModel.marketDataList = null
+                    viewModel.initMarketData()
                 }
             }
         }
@@ -116,6 +129,9 @@ fun PreviewMarketList() {
         Column(modifier = Modifier.fillMaxSize()) {
             SearchTopBar("") {}
             MarketTabScreen(marketDataPreprocessedDataList, marketDataPreprocessedDataList, 11, {}) {}
+        }
+        FloatingButton {
+
         }
     }
 }
