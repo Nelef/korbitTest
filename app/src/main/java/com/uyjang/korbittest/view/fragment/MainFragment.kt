@@ -83,6 +83,7 @@ class MainFragment : BaseFragment() {
                 lifecycleScope.launch(Dispatchers.Main) {
                     viewModel.marketDataList = null
                     viewModel.initMarketData()
+                    viewModel.sortList(viewModel.sortButtonNum)
                 }
             }
         }
