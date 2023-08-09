@@ -59,11 +59,9 @@ fun KorbitTestTheme(
             val window = (view.context as Activity).window
             if (darkTheme) {
                 window.statusBarColor = darkColorScheme.primary.toArgb()
-                window.navigationBarColor = darkColorScheme.primary.toArgb()
                 WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
             } else {
                 window.statusBarColor = lightColorScheme.primary.toArgb()
-                window.navigationBarColor = lightColorScheme.primary.toArgb()
                 WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
             }
         }
