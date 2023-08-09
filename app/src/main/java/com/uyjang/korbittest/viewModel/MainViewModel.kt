@@ -19,6 +19,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     init {
         // 코루틴을 사용하여 getPreference의 Flow 값을 가져온 후 StateFlow에 설정
         viewModelScope.launch {
+            favoriteDataSource = FavoriteDataSource(getApplication())
             initMarketData()
         }
     }
@@ -35,7 +36,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private var tempFavoriteMarketDataPreprocessedDataList by mutableStateOf(emptyList<MarketDataPreprocessedData>())
 
     // 즐겨찾기 기능
-    private val favoriteDataSource = FavoriteDataSource(getApplication())
+    private lateinit var favoriteDataSource: FavoriteDataSource
     private var favorites by mutableStateOf(emptyList<String>())
 
     // 즐겨찾기 설정
